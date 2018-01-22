@@ -1,0 +1,9 @@
+; Suite d instructions a traduire en binaire
+; suite de add
+ADD R0 R1 100
+ADD R0 R2 200
+ADD R0 R3 13
+ADD R0 R4 23649
+; suite arithmetique
+SUB R1 R2 R5
+SUB R4 51 R6
