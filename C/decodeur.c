@@ -24,7 +24,7 @@ struct Instruction
 
 long int instr2longint(struct Instruction *instr) {
   //convertit une instruction en integer exploitable par le fichier principal
-  char possibleCommande[TAILLE_PC] = "STOP -ADD  -SUB  -MULT -DIV  -AND  -OR   -XOR  -SHL  -SHR  -SLE  -SEQ  -LOAD -STORE-JMP  -BRAZ -BRANZ-SCALL-";
+  char possibleCommande[TAILLE_PC] = "STOP -ADD  -SUB  -MULT -DIV  -AND  -OR   -XOR  -SHL  -SHR  -SLT  -SLE  -SEQ  -LOAD -STORE-JMP  -BRAZ -BRANZ-SCALL-";
   long int ret = 0;
 
   char *func;
@@ -36,7 +36,7 @@ long int instr2longint(struct Instruction *instr) {
     //printf(" valeur du token :%set valeur du mot :%s.\n", token, instr->mot);
     if (strcmp(token, instr->mot)==0) {
       func = token;
-      printf("func=%s\n", func); // c'est la fonction
+      //printf("func=%s\n", func); // c'est la fonction
       break;
     }
     no_instr++;
@@ -49,6 +49,10 @@ long int instr2longint(struct Instruction *instr) {
   int reg1;
 
   switch(no_instr){
+
+    case 19:
+      ret = 0;
+      break;
 
     case 15:
       if(instr->nombre[0]=="R"){
@@ -140,6 +144,8 @@ struct Instruction chaine2instr(char *chaine) {
   }
   instruction.mot = tokens[0];
   switch (esp) {
+    case 0:
+      break;
     case 1:
       instruction.nombre = tokens[1];
       break;
@@ -173,7 +179,7 @@ int main(int argc, char *argv[])
 
     FILE* fichier = fopen("program.txt", "r");
     //char *chaine  = malloc (sizeof(char) * TAILLE_MAX);
-    long int program[MAX_INSTRUCTIONS]; //variable qui contiendra l'ensemble des instructions
+    long int *program = (long int *) malloc(MAX_INSTRUCTIONS * sizeof(long  int)); //variable qui contiendra l'ensemble des instructions
     int i = 0;
     //printf("avant boucle de lecture\n");
     if(fichier == NULL){
@@ -206,19 +212,16 @@ int main(int argc, char *argv[])
     int a = decodageInstr(&instruction);
     printf("nro_Instr ressorti : %d\n", a);
     */
-    for(int j = 0; j<i ; j++){
-        printf("commande %d : %08x\n", j, program[j]);
-    }
 
     FILE* fichierH = fopen("program_hexa.txt", "w");
     if(fichierH == NULL){
       printf("Erreur lors de la lecture du fichier de programme");
     }else{
       //L'ouverture du fichier a reussi, on va pouvoir proceder a la traduction
-      int i=0;
-      while (program[i] != NULL) {
-        fputs(program[i], fichierH);
-        i++;
+      int m=0;
+      while (m < i) {
+        fprintf(fichierH, "%08x\n", program[m]);
+        m++;
       }
     fclose(fichierH);
   }
