@@ -115,13 +115,18 @@ int main(int argc, char *argv[])
     }
     fclose(fichier);
     //printf("apres boucle de lecture\n");
-    //Ca fonctionne au moins jusque la, il faut rajouter la mise de l'instruction traduite dans le tableau
 
-    /*
-    char *instruction = (char *)malloc(TAILLE_MAX * sizeof(char));
-    *instruction = "add  ";
-    int a = decodageInstr(&instruction);
-    printf("nro_Instr ressorti : %d\n", a);
-    */
+    FILE* fichier = fopen("program_hexa.txt", "w");
+    if(fichier == NULL){
+      printf("Erreur lors de la lecture du fichier de programme");
+    }
+    else {
+        //L'ouverture du fichier a reussi, on va pouvoir proceder a la traduction
+        int i=0;
+        while (program[i] != NULL) {
+          fputs(program[i], fichier);
+          i++;
+      }
+      fclose(fichier);
     return 0;
 }
