@@ -17,8 +17,11 @@ clean:
 	@	echo ".o supprime"
 
 run:
-	@ echo "Lancement de la VM\n"
-	./VM.o
+	@ echo "### Lancement de la VM ###\n"
+	./decodeur.o program.txt program_hexa.txt
+	@ echo "### Decodage termine   ###\n"	
+	./VM.o program_hexa.txt
+	@ echo "### Programme termine  ###\n"
 
 runsure:
 	@ echo "Lancement de la VM qui fonctionne\n"

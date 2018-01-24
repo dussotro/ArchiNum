@@ -12,7 +12,6 @@
 #define TAILLE_MAX 100
 #define MAX_INSTRUCTIONS 100
 #define LONGUEUR_MOT 5
-#define TAILLE_PC 114
 
 struct Instruction
 {
@@ -22,31 +21,35 @@ struct Instruction
     char *nombre; // le nombre o ou a ou n selon les cas (a pour braz et branz, n pour scall)
 };
 
-long int instr2longint(struct Instruction *instr) {
+unsigned long int instr2unsignedint(struct Instruction *instr) {
   //convertit une instruction en integer exploitable par le fichier principal
-  char possibleCommande[TAILLE_PC] = "STOP -ADD  -SUB  -MULT -DIV  -AND  -OR   -XOR  -SHL  -SHR  -SLT  -SLE  -SEQ  -LOAD -STORE-JMP  -BRAZ -BRANZ-SCALL-";
-  long int ret = 0;
+  char possibleCommande[] = "STOP-ADD-SUB-MULT-DIV-AND-OR-XOR-SHL-SHR-SLT-SLE-SEQ-LOAD-STORE-JMP-BRAZ-BRANZ-SCALL-";
+  unsigned long int ret = 0;
 
-  char *func;
+
   char *token;
   int no_instr = 0;
-  func = NULL;
 
   for (token = strtok(possibleCommande, "-"); token; token = strtok(NULL, "-")) {
     //printf(" valeur du token :%set valeur du mot :%s.\n", token, instr->mot);
     if (strcmp(token, instr->mot)==0) {
-      func = token;
       //printf("func=%s\n", func); // c'est la fonction
       break;
     }
     no_instr++;
   }
-
+  ret = 0;
   ret = no_instr << 27;
+  ret = ret & 0xFFFFFFFF;
+  printf("ret : %lu \n", ret);
 
-  int imm = 0;
+
+
+  int imm = 1;
   int o;
   int reg1;
+  int reg2;
+  char ref_registre = 'R';
 
   switch(no_instr){
 
@@ -55,7 +58,7 @@ long int instr2longint(struct Instruction *instr) {
       break;
 
     case 15:
-      if(instr->nombre[0]=="R"){
+      if(instr->nombre[0]==ref_registre){
         imm = 1;
         for(int l=0; instr->nombre[l]; l++){
           instr->nombre[l]= instr->nombre[l+1];
@@ -78,7 +81,7 @@ long int instr2longint(struct Instruction *instr) {
       reg1 = atoi(instr->no_reg1);
       o = atoi(instr->nombre);
 
-      ret = ret + (reg1 << 26);
+      ret = ret + (reg1 << 22);
       ret = ret + o ;
       break;
 
@@ -89,7 +92,7 @@ long int instr2longint(struct Instruction *instr) {
       reg1 = atoi(instr->no_reg1);
       o = atoi(instr->nombre);
 
-      ret = ret + (reg1 << 26);
+      ret = ret + (reg1 << 22);
       ret = ret + o ;
       break;
 
@@ -102,17 +105,23 @@ long int instr2longint(struct Instruction *instr) {
       for(int k=0; instr->no_reg1[k]; k++){
         instr->no_reg1[k]= instr->no_reg1[k+1];
       }
+      for(int k=0; instr->no_reg2[k]; k++){
+        instr->no_reg2[k]= instr->no_reg2[k+1];
+      }
       reg1 = atoi(instr->no_reg1);
-      if(instr->nombre[0]=="R"){
-        imm = 1;
+      reg2 = atoi(instr->no_reg2);
+
+      if(instr->nombre[0]==ref_registre){
+        imm = 0;
         for(int l=0; instr->nombre[l]; l++){
           instr->nombre[l]= instr->nombre[l+1];
         }
       }
       o = atoi(instr->nombre);
-      ret = ret + (imm << 26);
+      ret = ret + (reg1 << 22);
+      ret = ret + (imm  << 21);
       ret = ret + (o << 5);
-      ret = ret + reg1;
+      ret = ret + reg2;
   }
 
   return ret;
@@ -161,25 +170,15 @@ struct Instruction chaine2instr(char *chaine) {
       break;
   }
 
-  //Il faut compléter les noms des instrucions pour que toutes les instructions soient de la meme taille (avec store la plus grande) --> FAIT
-
-  if(strlen(instruction.mot)==2){
-    strcat(instruction.mot, "   ");
-  }else if(strlen(instruction.mot)==3){
-    strcat(instruction.mot, "  ");
-  } else if(strlen(instruction.mot)==4){
-    strcat(instruction.mot, " ");
-  }
-
   return instruction;
 }
 
 int main(int argc, char *argv[])
 {
 
-    FILE* fichier = fopen("program_simple.txt", "r");
+    FILE* fichier = fopen(argv[1], "r");
     //char *chaine  = malloc (sizeof(char) * TAILLE_MAX);
-    long int *program = (long int *) malloc(MAX_INSTRUCTIONS * sizeof(long  int)); //variable qui contiendra l'ensemble des instructions
+    unsigned long int *program = (unsigned long int *) malloc(MAX_INSTRUCTIONS * sizeof(unsigned long int)); //variable qui contiendra l'ensemble des instructions
     int i = 0;
     //printf("avant boucle de lecture\n");
     if(fichier == NULL){
@@ -196,8 +195,8 @@ int main(int argc, char *argv[])
         //printf("nombre de l'instruction : %s\n", instruction.nombre);
 
 
-        long int int_instr = instr2longint(&instruction);
-
+        unsigned long int int_instr = instr2unsignedint(&instruction);
+        printf("int_instr : %lu\n", int_instr);
         program[i] = int_instr;
         i++;
       }
@@ -205,16 +204,8 @@ int main(int argc, char *argv[])
     fclose(fichier);
     //printf("apres boucle de lecture\n");
 
-    //Ca fonctionne au moins jusque la, il faut rajouter la mise de l'instruction traduite dans le tableau
 
-    /*
-    char *instruction = (char *)malloc(TAILLE_MAX * sizeof(char));
-    *instruction = "add  ";
-    int a = decodageInstr(&instruction);
-    printf("nro_Instr ressorti : %d\n", a);
-    */
-
-    FILE* fichierH = fopen("program_hexa.txt", "w");
+    FILE* fichierH = fopen(argv[2], "w");
     if(fichierH == NULL){
       printf("Erreur lors de la lecture du fichier de programme");
     }else{

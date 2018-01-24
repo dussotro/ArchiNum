@@ -9,18 +9,19 @@
 
 unsigned regs[ NUM_REGS ];
 char data[128];
-unsigned program[];
+unsigned long int program[MAX_INSTRUCTIONS];
 /* program counter */
 int pc = 0;
 
 /* fetch the next word from the program */
-int fetch()
+unsigned long int fetch()
 {
+
   return program[ pc++ ];
 }
 
 /* instruction fields */
-int instrNum = 0;
+unsigned int instrNum = 0;
 int reg1     = 0;
 int reg2     = 0;
 int imm      = 0;
@@ -29,14 +30,27 @@ int a        = 0;
 int n        = 0;
 
 /* decode a word */
-void decode( int instr )
+void decode( unsigned long int instr )
 {
-  instrNum = (instr & 0xF8000000) >> 27;
+
+  instrNum = 0;
+  reg1     = 0;
+  reg2     = 0;
+  imm      = 0;
+  o        = 0;
+  a        = 0;
+  n        = 0;
+
+  printf("instr        : %lu\n", instr);
+  printf("instr & mask : %lu\n", instr & (31<<27));
+
+  instrNum = (instr & (31<<27)) >> 27;
+  //printf("numero d'instruction : %x\n instr & mask : %x \n instr&mask>> : %x \n", instrNum, instr & 0xFFFFFFFF, (instr & 0xFFFFFFFF) >> 27);
   switch (instrNum) {
     case 15:
-      imm      = (instr & 0x400000 )  >> 26;
+      imm      = (instr & (1<<26)  )  >> 26;
       o        = (instr & 0x3FFFE0 )  >>  5;
-      reg1     = (instr & 0x1F     )       ;
+      reg1     = (instr & 0x00001F)       ;
       break;
     case 16:
       reg1     = (instr & 0x7C00000)  >> 26;
@@ -73,74 +87,158 @@ void eval()
       break;
     case 1:
       /* add   */
-      printf( "add r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] + o;
-      break;
+      if (imm == 1) {
+        printf( "add r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] + o;
+        break;
+      }
+      else {
+        printf( "add r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] + regs[o];
+        break;
+      }
     case 2:
       /* sub   */
-      printf( "sub r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] - o;
-      break;
+      if (imm == 1) {
+        printf( "sub r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] - o;
+        break;
+      }
+      else {
+        printf( "sub r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] - regs[ o ];
+        break;
+      }
     case 3:
       /* mult  */
-      printf( "mult r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] * o;
-      break;
+      if (imm == 1) {
+        printf( "mult r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] * o;
+        break;
+      }
+      else {
+        printf( "mult r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] * regs[ o ];
+        break;
+      }
     case 4:
       /* div   */
-      printf( "div r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] / o;
-      break;
+      if (imm == 1) {
+        printf( "div r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] / o;
+        break;
+      }
+      else {
+        printf( "div r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] / regs[ o ];
+        break;
+      }
     case 5:
       /* and   */
-      printf( "and r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] & o;
-      break;
+      if (imm == 1) {
+        printf( "and r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] & o;
+        break;
+      }
+      else {
+        printf( "and r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] & regs[ o ];
+        break;
+      }
     case 6:
       /* or    */
-      printf( "or r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] | o;
-      break;
+      if (imm == 1) {
+        printf( "or r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] | o;
+        break;
+      }
+      else {
+        printf( "or r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] | regs[ o ];
+        break;
+      }
     case 7:
       /* xor   */
-      printf( "xor r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] ^ o;
-      break;
+      if (imm == 1) {
+        printf( "xor r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] ^ o;
+        break;
+      }
+      else {
+
+      }
     case 8:
       /* shl   */
-      printf( "shl r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] << o;
-      break;
+      if (imm == 1) {
+        printf( "shl r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] << o;
+        break;
+      }
+      else {
+        printf( "shl r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] << regs[ o ];
+        break;
+      }
     case 9:
       /* shr   */
-      printf( "shr r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] >> o;
-      break;
+      if (imm == 1) {
+        printf( "shr r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] >> o;
+        break;
+      }
+      else {
+        printf( "shr r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] >> regs[ o ];
+        break;
+      }
     case 10:
       /* slt   */
-      printf( "slt r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] < o;
-      break;
+      if (imm == 1) {
+        printf( "slt r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] < o;
+        break;
+      }
+      else {
+        printf( "slt r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] < regs[ o ];
+        break;
+      }
     case 11:
       /* sle   */
-      printf( "sle r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] <= o;
-      break;
+      if (imm == 1) {
+        printf( "sle r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] <= o;
+        break;
+      }
+      else {
+        printf( "sle r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] <= regs[ o ];
+        break;
+      }
     case 12:
       /* seq   */
-      printf( "seq r%d #%d r%d\n", reg1, o, reg2 );
-      regs[ reg2 ] = regs[ reg1 ] == o;
-      break;
+      if (imm == 1) {
+        printf( "seq r%d #%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] == o;
+        break;
+      }
+      else {
+        printf( "seq r%d r%d r%d\n", reg1, o, reg2 );
+        regs[ reg2 ] = regs[ reg1 ] == regs[ o ];
+        break;
+      }
     case 13:
       /* load  */
       printf( "load r%d #%d r%d\n", reg1, o, reg2);
       regs[ reg2 ] = regs[reg1 + o];
       break;
+
     case 14:
       /* store */
       printf( "store r%d #%d r%d\n", reg1, o, reg2);
       regs[ reg1 + o ] = regs[reg2];
       break;
+
     case 15:
       /* jmp   */
       printf( "jmp r%d r%d", reg1, imm );
@@ -173,11 +271,13 @@ void eval()
     case 18:
       /* scall */
       printf("scall n%d", n);
-      reg1 = 0;
+      n = 0;
       switch(imm)
       {
         case 0:
+          printf("Donnez un nombre : ");
           read(0,data,128);
+          printf("\n");
           regs[reg1] = atoi(data);
           break;
         case 1:
@@ -194,7 +294,7 @@ void showRegs()
   printf( "regs = \n" );
   int cpt=0;
   for(int i=0; i<NUM_REGS; i++ ) {
-    printf( "%016X ", regs[ i ] );
+    printf( "%08X ", regs[ i ] );
     cpt++;
     if(cpt == 4)
     {
@@ -207,35 +307,38 @@ void showRegs()
 
 void run()
 {
-  FILE* fichier = fopen("program_hexa.txt", "r");
+    while( running )
+    {
+      showRegs();
+      unsigned int instr = fetch();
+      decode( instr );
+      eval();
+    }
+    showRegs();
+}
+
+int main( int argc, const char * argv[] )  {
+
+  FILE* fichier = fopen(argv[1], "r");
   //printf("avant boucle de lecture\n");
   if(fichier == NULL){
-    printf("Erreur lors de la lecture du fichier de programme");
+    printf("Erreur lors de la lecture du fichier de programme \n");
   }
+
   else {
       //L'ouverture du fichier a reussi, on va pouvoir proceder a la traduction
       int i=0;
       char *chaine= (char *)malloc(TAILLE_MAX * sizeof(char));
       while (fgets(chaine, TAILLE_MAX, fichier) != NULL) {
         printf("%s", chaine); //afficher les lignes de la fiche d'instructio
-        program[i] = atoi(chaine);
+        //program[i] = strtoul(program[i], chaine);
+        program[i] = strtoul(chaine, NULL, 16);
         i++;
     }
-    fclose(fichier);
 
-    while( running )
-    {
-      showRegs();
-      int instr = fetch();
-      decode( instr );
-      eval();
-    }
-    showRegs();
-  }
-}
+  fclose(fichier);
 
-int main( int argc, const char * argv[] )
-{
   run();
   return 0;
+  }
 }
