@@ -9,9 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TAILLE_MAX 100
+#define TAILLE_MAX       100
 #define MAX_INSTRUCTIONS 100
-#define LONGUEUR_MOT 5
+#define MAX_LABEL        50
+#define LONGUEUR_MOT     5
+
+char ref_registre = 'R';
+char char_label_deb = '(';
+char char_label_fin = ')';
 
 struct Instruction
 {
@@ -21,7 +26,13 @@ struct Instruction
     char *nombre; // le nombre o ou a ou n selon les cas (a pour braz et branz, n pour scall)
 };
 
-unsigned long int instr2unsignedint(struct Instruction *instr) {
+struct Label
+{
+  char nom[4];
+  int  no_instr;
+};
+
+unsigned long int instr2unsignedlongint(struct Instruction *instr) {
   //convertit une instruction en integer exploitable par le fichier principal
   char possibleCommande[] = "STOP-ADD-SUB-MULT-DIV-AND-OR-XOR-SHL-SHR-SLT-SLE-SEQ-LOAD-STORE-JMP-BRAZ-BRANZ-SCALL-";
   unsigned long int ret = 0;
@@ -43,13 +54,10 @@ unsigned long int instr2unsignedint(struct Instruction *instr) {
   ret = ret & 0xFFFFFFFF;
   printf("ret : %lu \n", ret);
 
-
-
   int imm = 1;
   int o;
   int reg1;
   int reg2;
-  char ref_registre = 'R';
 
   switch(no_instr){
 
@@ -127,51 +135,74 @@ unsigned long int instr2unsignedint(struct Instruction *instr) {
   return ret;
 }
 
+struct Label chaine2label(char *chaine, int i) {
+  struct Label label;
+  label.nom[0] = '(';
+  int cpt=1;
+  while (chaine[cpt] != char_label_fin && cpt<=4) {
+    label.nom[cpt] = chaine[cpt];
+    cpt++;
+  }
+  label.no_instr = i;
+  return label;
+}
+
 struct Instruction chaine2instr(char *chaine) {
   printf("Decodage de %s", chaine);
-  struct Instruction instruction;
-  instruction.mot = (char *)malloc(LONGUEUR_MOT * sizeof(char));
 
-  //on compte les espaces dans la commande pour différencier les cas
-  int esp = 0;
-  for (int i = 0; i<strlen(chaine); i++) {
-    if (chaine[i] == ' ') {
-      esp++;
+    struct Instruction instruction;
+    instruction.mot = (char *)malloc(LONGUEUR_MOT * sizeof(char));
+
+    //on compte les espaces dans la commande pour différencier les cas
+    int esp = 0;
+    for (int i = 0; i<strlen(chaine); i++) {
+      if (chaine[i] == ' ') {
+        esp++;
+      }
     }
-  }
 
 
-  char * tokens[4];
-  char * token;
-  int i;
+    char * tokens[4];
+    char * token;
+    int i;
 
-  i = 0;
-  for (token = strtok(chaine, " "); token; token = strtok(NULL, " ")) {
-    tokens[i] = token;
-    printf("token=%s\n", tokens[i]);
-    i++;
-  }
-  instruction.mot = tokens[0];
-  switch (esp) {
-    case 0:
-      break;
-    case 1:
-      instruction.nombre = tokens[1];
-      break;
-    case 2:
-      break;
-    case 3:
-      instruction.no_reg1 = tokens[1];
-      instruction.nombre  = tokens[2];
-      instruction.no_reg2 = tokens[3];
-      break;
-    default:
-      perror("Erreur \n");
-      break;
-  }
+    i = 0;
+    for (token = strtok(chaine, " "); token; token = strtok(NULL, " ")) {
+      tokens[i] = token;
+      printf("token=%s\n", tokens[i]);
+      i++;
+    }
+    instruction.mot = tokens[0];
+    switch (esp) {
+      case 0:
+        break;
+      case 1:
+        instruction.nombre = tokens[1];
+        break;
+      case 2:
+        break;
+      case 3:
+        instruction.no_reg1 = tokens[1];
+        instruction.nombre  = tokens[2];
+        instruction.no_reg2 = tokens[3];
+        break;
+      default:
+        perror("Erreur \n");
+        break;
+    }
 
   return instruction;
 }
+
+unsigned long int label2unsignedlongint (struct Label *label) {
+  unsigned long int nombre = (unsigned long int) malloc (sizeof(unsigned long int));
+  nombre += label->nom[0] << 24;
+  for (int i = 1; i<=3; i++) {
+    nombre += label->nom[i] << (16 - i*8);
+  }
+  return nombre;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -179,8 +210,9 @@ int main(int argc, char *argv[])
     FILE* fichier = fopen(argv[1], "r");
     //char *chaine  = malloc (sizeof(char) * TAILLE_MAX);
     unsigned long int *program = (unsigned long int *) malloc(MAX_INSTRUCTIONS * sizeof(unsigned long int)); //variable qui contiendra l'ensemble des instructions
+    unsigned long int int_instr = 0;
     int i = 0;
-    //printf("avant boucle de lecture\n");
+
     if(fichier == NULL){
       printf("Erreur lors de la lecture du code assembleur");
     }
@@ -189,20 +221,22 @@ int main(int argc, char *argv[])
       char *chaine= (char *)malloc(TAILLE_MAX * sizeof(char));
       while (fgets(chaine, TAILLE_MAX, fichier) != NULL) {
         printf("%s", chaine); //afficher les lignes de la fiche d'instruction
-        struct Instruction instruction = chaine2instr(chaine);
+        if (chaine[0] == '(') {
+          struct Label label  = chaine2label(chaine, i);
+          printf("%c === \n", chaine[0]);
+          int_instr           = label2unsignedlongint(&label);
+        }
+        else {
+          struct Instruction instruction = chaine2instr(chaine);
+          int_instr                      = instr2unsignedlongint(&instruction);
+        }
 
-        //test chaine2instr
-        //printf("nombre de l'instruction : %s\n", instruction.nombre);
-
-
-        unsigned long int int_instr = instr2unsignedint(&instruction);
         printf("int_instr : %lu\n", int_instr);
         program[i] = int_instr;
         i++;
       }
     }
     fclose(fichier);
-    //printf("apres boucle de lecture\n");
 
 
     FILE* fichierH = fopen(argv[2], "w");

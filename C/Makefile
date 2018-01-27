@@ -18,7 +18,7 @@ clean:
 
 run:
 	@ echo "### Lancement de la VM ###\n"
-	./decodeur.o program.txt program_hexa.txt
+	./decodeur.o syracuse.txt program_hexa.txt
 	@ echo "### Decodage termine   ###\n"	
 	./VM.o program_hexa.txt
 	@ echo "### Programme termine  ###\n"
