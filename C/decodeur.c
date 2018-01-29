@@ -56,10 +56,13 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
   ret = ret & 0xFFFFFFFF;
   printf("ret : %lu \n", ret);
 
-  int imm = 1;
+  int imm = 0;
   int o;
   int reg1;
   int reg2;
+  int flag_label = 0; //creation d'une condition de passage pour le cas d'un JMP
+  int lettre1; //utilisee dans jmp
+  int lettre2; //utilisee dans jmp
 
   switch(no_instr){
 
@@ -68,20 +71,35 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
       break;
 
     case 15:
-      if(instr->nombre[0]==ref_registre){
+      //il faudra comprendre pourquoi, mais nombre = registre et no_reg1 est le label
+      if(instr->no_reg1[0]==ref_registre){
         imm = 1;
-        for(int l=0; instr->nombre[l]; l++){
-          instr->nombre[l]= instr->nombre[l+1];
+        for(int l=0; instr->no_reg1[l]; l++){
+          instr->no_reg1[l]= instr->no_reg1[l+1];
         }
+      }else{
+        flag_label = 1;
+        lettre1 = (int)instr->no_reg1[0];
+        lettre2 = (int)instr->no_reg1[1];
       }
-      for(int k=0; instr->no_reg1[k]; k++){
-        instr->no_reg1[k]= instr->no_reg1[k+1];
+
+      for(int k=0; instr->nombre[k]; k++){
+        instr->nombre[k]= instr->nombre[k+1];
       }
-      reg1 = atoi(instr->no_reg1);
-      o = atoi(instr->nombre);
-      ret = ret + (o << 5);
-      ret = ret + (imm << 26);
+
+      reg1 = atoi(instr->nombre);
       ret = ret + (reg1);
+      ret = ret + (imm << 26);
+
+      if(flag_label==0){
+        //cas de JMP vers une donnee stockee dans un registre
+        o = atoi(instr->no_reg1);
+        ret = ret + (o << 5);
+      }else{
+        //cas de JMP vers un label
+        ret = ret + (lettre2 << 5);
+        ret = ret + (lettre1 << 13);
+      }
       break;
 
     case 16:
