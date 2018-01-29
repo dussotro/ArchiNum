@@ -20,6 +20,7 @@ char char_label_fin = ')';
 
 struct Instruction
 {
+    //Structure definissant une instruction
     char *mot;
     char *no_reg1; //numero de registre si y a besoin
     char *no_reg2;
@@ -28,6 +29,7 @@ struct Instruction
 
 struct Label
 {
+  //Structure definissant les labels
   char nom[4];
   int  no_instr;
 };
@@ -83,14 +85,23 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
       break;
 
     case 16:
-      for(int k=0; instr->no_reg1[k]; k++){
-        instr->no_reg1[k]= instr->no_reg1[k+1];
+      for(int p=0; instr->no_reg1[p]; p++){
+        instr->no_reg1[p]= instr->no_reg1[p+1];
       }
       reg1 = atoi(instr->no_reg1);
-      o = atoi(instr->nombre);
+
+      if((int)(instr->nombre[0]) >= 48 && (int)(instr->nombre[0]) <= 57){
+        o = atoi(instr->nombre);
+        ret = ret + o ;
+      } //conversion d'un char en integer
+      else{
+        for(int q = 0; instr->nombre[q]; q++){
+          o = (int)(instr->nombre[q]);
+          ret = ret + (o << (16 - (q+1)*8));
+        }
+      }
 
       ret = ret + (reg1 << 22);
-      ret = ret + o ;
       break;
 
     case 17:
@@ -98,10 +109,18 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
         instr->no_reg1[k]= instr->no_reg1[k+1];
       }
       reg1 = atoi(instr->no_reg1);
-      o = atoi(instr->nombre);
+      if((int)(instr->nombre[0]) >= 48 && (int)(instr->nombre[0]) <= 57){
+        o = atoi(instr->nombre);
+        ret = ret + o ;
+      } //conversion d'un char en integer
+      else{
+        for(int q = 0; instr->nombre[q]; q++){
+          o = (int)(instr->nombre[q]);
+          ret = ret + (o << (16 - (q+1)*8));
+        }
+      }
 
       ret = ret + (reg1 << 22);
-      ret = ret + o ;
       break;
 
     case 18:
@@ -136,10 +155,11 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
 }
 
 struct Label chaine2label(char *chaine, int i) {
+  //Methode de conversion d'une chaine de caractere en un label
   struct Label label;
   label.nom[0] = '(';
   int cpt=1;
-  while (chaine[cpt] != char_label_fin && cpt<=4) {
+  while (chaine[cpt] != char_label_fin && cpt<=3) {
     label.nom[cpt] = chaine[cpt];
     cpt++;
   }
@@ -148,6 +168,7 @@ struct Label chaine2label(char *chaine, int i) {
 }
 
 struct Instruction chaine2instr(char *chaine) {
+  //Methode de conversion d'une chaine de caracteres en une instruction
   printf("Decodage de %s", chaine);
 
     struct Instruction instruction;
@@ -180,6 +201,8 @@ struct Instruction chaine2instr(char *chaine) {
         instruction.nombre = tokens[1];
         break;
       case 2:
+        instruction.no_reg1 = tokens[1];
+        instruction.nombre  = tokens[2];
         break;
       case 3:
         instruction.no_reg1 = tokens[1];
@@ -195,11 +218,12 @@ struct Instruction chaine2instr(char *chaine) {
 }
 
 unsigned long int label2unsignedlongint (struct Label *label) {
-  unsigned long int nombre = (unsigned long int) malloc (sizeof(unsigned long int));
-  nombre += label->nom[0] << 24;
-  for (int i = 1; i<=3; i++) {
-    nombre += label->nom[i] << (16 - i*8);
-  }
+  unsigned long int nombre = 0;
+
+  nombre += ((int)label->nom[0] << 24);
+  nombre += ((int)label->nom[1] << 16);
+  nombre += ((int)label->nom[2] << 8);
+  nombre += (int)label->nom[3];
   return nombre;
 }
 
@@ -246,7 +270,7 @@ int main(int argc, char *argv[])
       //L'ouverture du fichier a reussi, on va pouvoir proceder a la traduction
       int m=0;
       while (m < i) {
-        fprintf(fichierH, "%08x\n", program[m]);
+        fprintf(fichierH, "%lu\n", program[m]);
         m++;
       }
     fclose(fichierH);
