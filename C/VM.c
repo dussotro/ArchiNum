@@ -1,3 +1,11 @@
+/*******************************************************************************************************************
+* Titre : VM.c
+* Auteurs : Cedric Delaunay et Romain Dussot
+* Date : 5 février 2018
+* Resume : Fonctionnement de la machine virtuelle
+********************************************************************************************************************/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -332,7 +340,7 @@ int main( int argc, const char * argv[] )  {
       while (fgets(chaine, TAILLE_MAX, fichier) != NULL) {
         printf("%s", chaine); //afficher les lignes de la fiche d'instructio
         //program[i] = strtoul(program[i], chaine);
-        program[i] = strtoul(chaine, NULL, 16);
+        program[i] = (unsigned long int)strtoul(chaine, NULL, 16);
         i++;
     }
 

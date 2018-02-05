@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
       //L'ouverture du fichier a reussi, on va pouvoir proceder a la traduction
       int m=0;
       while (m < i) {
-        fprintf(fichierH, "%lu\n", program[m]);
+        fprintf(fichierH, "%08X\n", program[m]);
         m++;
       }
     fclose(fichierH);
