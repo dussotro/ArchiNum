@@ -1,4 +1,5 @@
 SCALL 0
+(com)
 ADD R0 0 R1
 SCALL 0
 ADD R0 0 R2

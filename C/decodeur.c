@@ -9,14 +9,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TAILLE_MAX       100
-#define MAX_INSTRUCTIONS 100
-#define MAX_LABEL        50
-#define LONGUEUR_MOT     5
+#define TAILLE_MAX        100
+#define MAX_INSTRUCTIONS  100
+#define MAX_LABEL         50
+#define LONGUEUR_MOT      5
+#define TAILLE_TAB_LABELS 100
 
 char ref_registre = 'R';
-char char_label_deb = '(';
-char char_label_fin = ')';
+char char_label_deb = '$';
+char char_label_fin = '$';
 
 struct Instruction
 {
@@ -30,7 +31,7 @@ struct Instruction
 struct Label
 {
   //Structure definissant les labels
-  char nom[4];
+  char *nom;
   int  no_instr;
 };
 
@@ -56,7 +57,7 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
   ret = ret & 0xFFFFFFFF;
   printf("ret : %lu \n", ret);
 
-  int imm = 0;
+  int imm = 1;
   int o;
   int reg1;
   int reg2;
@@ -73,7 +74,7 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
     case 15:
       //il faudra comprendre pourquoi, mais nombre = registre et no_reg1 est le label
       if(instr->no_reg1[0]==ref_registre){
-        imm = 1;
+        imm = 0;
         for(int l=0; instr->no_reg1[l]; l++){
           instr->no_reg1[l]= instr->no_reg1[l+1];
         }
@@ -171,19 +172,19 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
 
   return ret;
 }
-
+/*
 struct Label chaine2label(char *chaine, int i) {
   //Methode de conversion d'une chaine de caractere en un label
   struct Label label;
-  label.nom[0] = '(';
   int cpt=1;
-  while (chaine[cpt] != char_label_fin && cpt<=3) {
+  while (chaine[cpt] != char_label_fin) {
     label.nom[cpt] = chaine[cpt];
     cpt++;
   }
   label.no_instr = i;
   return label;
 }
+*/
 
 struct Instruction chaine2instr(char *chaine) {
   //Methode de conversion d'une chaine de caracteres en une instruction
@@ -194,7 +195,7 @@ struct Instruction chaine2instr(char *chaine) {
 
     //on compte les espaces dans la commande pour différencier les cas
     int esp = 0;
-    for (int i = 0; i<strlen(chaine); i++) {
+    for (int i = 1; i<strlen(chaine); i++) {
       if (chaine[i] == ' ') {
         esp++;
       }
@@ -206,7 +207,7 @@ struct Instruction chaine2instr(char *chaine) {
     int i;
 
     i = 0;
-    for (token = strtok(chaine, " "); token; token = strtok(NULL, " ")) {
+    for (token = strtok(chaine, "> "); token; token = strtok(NULL, "> ")) {
       tokens[i] = token;
       printf("token=%s\n", tokens[i]);
       i++;
@@ -249,9 +250,30 @@ unsigned long int label2unsignedlongint (struct Label *label) {
 int main(int argc, char *argv[])
 {
 
+    FILE* fichierL = fopen(argv[1], "r");
+
+    if(fichierL == NULL){
+      printf("Erreur lors de la lecture du code assembleur");
+    }
+    else {
+      int cptL = 0;
+      int ligneL = 0;
+      struct Label *tableauL = (struct Label*) malloc(TAILLE_TAB_LABELS * sizeof(struct Label));
+      char* chainelab = (char *)malloc(TAILLE_MAX * sizeof(char));
+      while (fgets(chainelab, TAILLE_MAX, fichierL) != NULL) {
+        if(chainelab[0]=='$'){
+          (tableauL[ligneL]).no_instr = cptL+1;
+          (tableauL[ligneL]).nom = chainelab;
+          ligneL++;
+        }
+        cptL++;
+      }
+      fclose(fichierL);
+    }
+
     FILE* fichier = fopen(argv[1], "r");
     //char *chaine  = malloc (sizeof(char) * TAILLE_MAX);
-    unsigned long int *program = (unsigned long int *) malloc(MAX_INSTRUCTIONS * sizeof(unsigned long int)); //variable qui contiendra l'ensemble des instructions
+    unsigned int *program = (unsigned int *) malloc(MAX_INSTRUCTIONS * sizeof(unsigned int)); //variable qui contiendra l'ensemble des instructions
     unsigned long int int_instr = 0;
     int i = 0;
 
@@ -263,12 +285,7 @@ int main(int argc, char *argv[])
       char *chaine= (char *)malloc(TAILLE_MAX * sizeof(char));
       while (fgets(chaine, TAILLE_MAX, fichier) != NULL) {
         printf("%s", chaine); //afficher les lignes de la fiche d'instruction
-        if (chaine[0] == '(') {
-          struct Label label  = chaine2label(chaine, i);
-          printf("%c === \n", chaine[0]);
-          int_instr           = label2unsignedlongint(&label);
-        }
-        else {
+        if (chaine[0] == '>') {
           struct Instruction instruction = chaine2instr(chaine);
           int_instr                      = instr2unsignedlongint(&instruction);
         }
@@ -288,7 +305,7 @@ int main(int argc, char *argv[])
       //L'ouverture du fichier a reussi, on va pouvoir proceder a la traduction
       int m=0;
       while (m < i) {
-        fprintf(fichierH, "%lu\n", program[m]);
+        fprintf(fichierH, "%08x\n", program[m]);
         m++;
       }
     fclose(fichierH);
