@@ -16,8 +16,9 @@
 #define TAILLE_TAB_LABELS 100
 
 char ref_registre = 'R';
-char char_label_deb = '$';
-char char_label_fin = '$';
+char char_label_deb = '<';
+char char_label_fin = '<';
+char char_instr = '>';
 
 struct Instruction
 {
@@ -251,6 +252,7 @@ int main(int argc, char *argv[])
 {
 
     FILE* fichierL = fopen(argv[1], "r");
+    struct Label *tableauL = (struct Label*) malloc(TAILLE_TAB_LABELS * sizeof(struct Label));
 
     if(fichierL == NULL){
       printf("Erreur lors de la lecture du code assembleur");
@@ -258,10 +260,11 @@ int main(int argc, char *argv[])
     else {
       int cptL = 0;
       int ligneL = 0;
-      struct Label *tableauL = (struct Label*) malloc(TAILLE_TAB_LABELS * sizeof(struct Label));
       char* chainelab = (char *)malloc(TAILLE_MAX * sizeof(char));
       while (fgets(chainelab, TAILLE_MAX, fichierL) != NULL) {
-        if(chainelab[0]=='$'){
+        printf("salut salut %c\n", chainelab[0]);
+        if(chainelab[0] == char_label_deb){
+          printf("j'ai trouvé un label \n");
           (tableauL[ligneL]).no_instr = cptL+1;
           (tableauL[ligneL]).nom = chainelab;
           ligneL++;
@@ -285,7 +288,7 @@ int main(int argc, char *argv[])
       char *chaine= (char *)malloc(TAILLE_MAX * sizeof(char));
       while (fgets(chaine, TAILLE_MAX, fichier) != NULL) {
         printf("%s", chaine); //afficher les lignes de la fiche d'instruction
-        if (chaine[0] == '>') {
+        if (chaine[0] == char_instr) {
           struct Instruction instruction = chaine2instr(chaine);
           int_instr                      = instr2unsignedlongint(&instruction);
         }
