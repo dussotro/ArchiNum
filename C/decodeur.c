@@ -20,6 +20,7 @@ char char_label_deb = '<';
 char char_label_fin = '<';
 char char_instr = '>';
 
+
 struct Instruction
 {
     //Structure definissant une instruction
@@ -29,12 +30,14 @@ struct Instruction
     char *nombre; // le nombre o ou a ou n selon les cas (a pour braz et branz, n pour scall)
 };
 
+
 struct Label
 {
   //Structure definissant les labels
   char *nom;
   int  no_instr;
 };
+
 
 unsigned long int instr2unsignedlongint(struct Instruction *instr) {
   //convertit une instruction en integer exploitable par le fichier principal
@@ -173,7 +176,7 @@ unsigned long int instr2unsignedlongint(struct Instruction *instr) {
 
   return ret;
 }
-/*
+/* NON UTILISE POUR LE MOMENT
 struct Label chaine2label(char *chaine, int i) {
   //Methode de conversion d'une chaine de caractere en un label
   struct Label label;
@@ -262,16 +265,20 @@ int main(int argc, char *argv[])
       int ligneL = 0;
       char* chainelab = (char *)malloc(TAILLE_MAX * sizeof(char));
       while (fgets(chainelab, TAILLE_MAX, fichierL) != NULL) {
-        printf("salut salut %c\n", chainelab[0]);
         if(chainelab[0] == char_label_deb){
           printf("j'ai trouvé un label \n");
           (tableauL[ligneL]).no_instr = cptL+1;
           (tableauL[ligneL]).nom = chainelab;
+          printf("qu'y a t'il dans mon putain de tableau de labels ?? : %s & %d\n",(tableauL[ligneL]).nom,(tableauL[ligneL]).no_instr );
           ligneL++;
         }
         cptL++;
       }
       fclose(fichierL);
+      for(int m = 0; m<=2; m++){
+        printf("alloOO\n");
+        printf("affichage d'un nom de label : %s\n", tableauL[m].nom);
+      }
     }
 
     FILE* fichier = fopen(argv[1], "r");
