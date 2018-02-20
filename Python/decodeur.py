@@ -86,7 +86,7 @@ def instr2unsignedlongint(Instruction instr):
 
     elif(no_instr == 17):
         instr.no_reg1 = instr.no_reg1[1:]
-        reg1 = int(instr.no_reg1) 
+        reg1 = int(instr.no_reg1)
 
         if(0 <= instr.nombre[0] and instr.nombre[0] <= 9):
             o = int(instr.nombre)
@@ -123,7 +123,7 @@ def chaine2instr(chaine):
     instruction = Instruction()
 
     i = 0
-    
+
     chaine = chaine[1:]
     chaine = chaine.split(' ')
 
@@ -169,7 +169,3 @@ if __name__== "__main__":
         fichierL.close()
 
     fichier = open(sys.argv[1], "r")
-
-
-    
-

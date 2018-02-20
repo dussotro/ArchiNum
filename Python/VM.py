@@ -205,7 +205,7 @@ class VM:
                 self.instr = self.program[self.imm]
                 self.decode(instr)
                 self.evaluate()
-
+     
         elif instrNum == 18:
             #scall
 
