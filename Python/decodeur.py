@@ -122,7 +122,7 @@ def instr2unsignedlongint(instr):
         ret = ret + (reg1 << 22)
 
     elif(no_instr == 18):
-        o = int(instr.nombre[0])
+        o = int(instr.nombre)
         ret = ret + o
 
     else:
@@ -160,7 +160,7 @@ def chaine2instr(chaine):
         #Do nothing
         poubelle=0
     elif(esp==1):
-        instruction.nombre = [1]
+        instruction.nombre = chaine[1]
     elif(esp==2):
         instruction.no_reg1 = chaine[1]
         instruction.nombre  = chaine[2]

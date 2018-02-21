@@ -33,7 +33,7 @@ class VM:
 
         print(" ###")
 
-        self.instrNum = self.instr&(31<<27)>>27
+        self.instrNum = self.instr & 31 << 27 >> 27
 
         if (self.instrNum == 15):
             self.imm      = (self.instr & (1<<26)  )  >> 26
@@ -206,7 +206,7 @@ class VM:
                 self.decode(instr)
                 self.evaluate()
 
-        elif instrNum == 18:
+        elif self.instrNum == 18:
             #scall
 
             print("scall n{}".format(self.n))
