@@ -33,7 +33,7 @@ class VM:
 
         print(" ###")
 
-        self.instrNum = self.instr & 31 << 27 >> 27
+        self.instrNum = (self.instr & (31 << 27)) >> 27
 
         if (self.instrNum == 15):
             self.imm      = (self.instr & (1<<26)  )  >> 26
@@ -185,10 +185,11 @@ class VM:
             print( "jmp r{} r{}", self.reg1, self.imm )
             if (self.pc + self.imm > self.INSTR_LIM or self.program[self.pc+self.imm] == 0):
                 perror("Damn ! You jump too far !")
+            else:
 
-            self.instr = self.program[self.pc + self.imm]
-            self.decode()
-            self.evaluate()
+                self.instr = self.program[self.pc + self.imm]
+                self.decode()
+                self.evaluate()
 
         elif self.instrNum == 16:
             # braz
