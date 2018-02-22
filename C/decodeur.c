@@ -257,13 +257,15 @@ int main(int argc, char *argv[])
     FILE* fichierL = fopen(argv[1], "r");
     struct Label *tableauL = (struct Label*) malloc(TAILLE_TAB_LABELS * sizeof(struct Label));
 
+    int cptL = 0;
+    int ligneL = 0;
+    char* chainelab = (char *)malloc(TAILLE_MAX * sizeof(char));
+
     if(fichierL == NULL){
       printf("Erreur lors de la lecture du code assembleur");
     }
     else {
-      int cptL = 0;
-      int ligneL = 0;
-      char* chainelab = (char *)malloc(TAILLE_MAX * sizeof(char));
+
       while (fgets(chainelab, TAILLE_MAX, fichierL) != NULL) {
         if(chainelab[0] == char_label_deb){
           printf("j'ai trouvé un label \n");
@@ -276,8 +278,7 @@ int main(int argc, char *argv[])
       }
       fclose(fichierL);
       for(int m = 0; m<=2; m++){
-        printf("alloOO\n");
-        printf("affichage d'un nom de label : %s\n", tableauL[m].nom);
+        printf("affichage d'un nom de label : %s\n", (tableauL[m]).nom);
       }
     }
 
