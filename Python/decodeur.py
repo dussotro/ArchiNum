@@ -64,9 +64,6 @@ def instr2unsignedlongint(instr):
     elif(no_instr == 15):
         #JMP
         noreg1 = instr.no_reg1
-        print("valeur reg 1 : {}".format(instr.no_reg1))
-        print("valeur reg 2 : {}".format(instr.no_reg2))
-        print("valeur nombre : {}".format(instr.nombre))
         if(instr.no_reg1[0]==ref_registre):
             imm = 0
             instr.no_reg1 = instr.no_reg1[1:]
@@ -98,6 +95,8 @@ def instr2unsignedlongint(instr):
             o = int(instr.nombre)
             ret+=o
         else:
+            if(instr.nombre[-1]=="\n"):
+                instr.nombre = instr.nombre[:-1]
             for q in range(len(tableauL)):
                 if(tableauL[q][0] == instr.nombre):
                     o = int(tableauL[q][1])
@@ -114,6 +113,10 @@ def instr2unsignedlongint(instr):
             o = int(instr.nombre)
             ret+=o
         else:
+            if(instr.nombre[-1]=="\n"):
+                instr.nombre = instr.nombre[:-1]
+
+            print("la longueur de tableauL est : {}".format(len(tableauL)))
             for q in range(len(tableauL)):
                 if(tableauL[q][0] == instr.nombre):
                     o = int(tableauL[q][1])
