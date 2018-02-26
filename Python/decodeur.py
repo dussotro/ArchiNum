@@ -208,6 +208,8 @@ if __name__== "__main__":
         fichierL.close()
 
     fichier = open(sys.argv[1], "r")
+<<<<<<< HEAD
+=======
     program = []
     cpt = 0
     if(fichier == None):
@@ -233,3 +235,4 @@ if __name__== "__main__":
             fichierH.write("{:08x}\n".format(program[m]))
             m+=1
         fichierH.close()
+>>>>>>> 66c34cf694a92d8e593aa5342ef1a392e2f5a0a7
