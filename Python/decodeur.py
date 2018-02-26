@@ -24,6 +24,7 @@ class Label:
         self.no_instr = noInstr
 
     def __getitem__(self, indice):
+        #Surcharge de l'operateur [] pour acceder rapidement aux elements de Label
         if(indice == 0):
             return self.nom
         elif(indice == 1):
@@ -186,19 +187,18 @@ def label2unsignedlongint(label):
 if __name__== "__main__":
     global tableauL
 
-    print("Ici Star Command")
 
+    #premiere ouverture : on effectue un passage pour reperer les labels
     fichierL = open(sys.argv[1], "r")
     if(fichierL == None):
         print("Erreur Critique : Impossible de lire le code assembleur")
     else:
-        print("Le fichier a été ouvert avec succès Woody")
         cptL = 0
         ligne = fichierL.readline()
         ligne = ligne[:-2]
         while ligne:
             if(ligne[0] == char_label_deb):
-                print("Un label a été trouvé")
+                #on vient de trouver un label, on l'ajoute a la liste
                 ligne = ligne[1:-1]
                 tableauL.append(Label(ligne,cptL+1))
             ligne = fichierL.readline()
@@ -207,25 +207,24 @@ if __name__== "__main__":
 
         fichierL.close()
 
+    #deuxieme ouverture : decodage de toutes les instructions
     fichier = open(sys.argv[1], "r")
-<<<<<<< HEAD
-=======
     program = []
     cpt = 0
     if(fichier == None):
         print("Erreur critique : impossible de lire le code assembleur")
     else:
-        print("Le fichier a été ouvert avec succès Woody")
         ligne = fichier.readline()
         while ligne:
             if(ligne[0]==char_instr):
                 instruction = chaine2instr(ligne)
                 int_instr = instr2unsignedlongint(instruction)
-            program.append(int_instr)
+                program.append(int_instr)
+                cpt+=1
             ligne = fichier.readline()
-            cpt+=1
         fichier.close()
 
+    #transformation du pseudo ASM en hexa
     fichierH = open(sys.argv[2], "w")
     if(fichierH == None):
         print("Erreur critique : impossible d'écrire dans le fichier de destination")
@@ -235,4 +234,3 @@ if __name__== "__main__":
             fichierH.write("{:08x}\n".format(program[m]))
             m+=1
         fichierH.close()
->>>>>>> 66c34cf694a92d8e593aa5342ef1a392e2f5a0a7
