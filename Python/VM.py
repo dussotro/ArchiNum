@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import time
 
 class VM:
 
@@ -13,7 +14,7 @@ class VM:
         self.regs    = np.zeros((self.NUM_REGS), dtype=int)
         self.data    = np.zeros((1,128))
         self.program = []
-        self.pc      = 0
+        self.pc      = -1
 
         self.running = 1
 
@@ -30,9 +31,7 @@ class VM:
         return self.program[self.pc]
 
     def decode(self):
-
-        print(" ###")
-
+        #decodage d'une ligne ecrite au format hexadecimal
         self.instrNum = (self.instr & (31 << 27)) >> 27
 
         if (self.instrNum == 15):
@@ -40,10 +39,10 @@ class VM:
             self.o        = (self.instr & 0x3FFFE0 )  >>  5
             self.reg1     = (self.instr & 0x00001F)
         elif (self.instrNum == 16):
-            self.reg1     = (self.instr & 0x7C00000)  >> 26
+            self.reg1     = (self.instr & 0x7C00000)  >> 22
             self.a        = (self.instr & 0x3FFFFF )
         elif (self.instrNum == 17):
-            self.reg1     = (self.instr & 0x7C00000)  >> 26
+            self.reg1     = (self.instr & 0x7C00000)  >> 22
             self.a        = (self.instr & 0x3FFFFF )
         elif (self.instrNum == 18):
             self.n        = (self.instr & 0x7FFFFFF)
@@ -52,11 +51,10 @@ class VM:
             self.imm      = (self.instr & 0x200000 )  >> 21
             self.o        = (self.instr & 0x1FFFE0 )  >>  5
             self.reg2     = (self.instr & 0X1F     )
-        print(" imm {} \n reg 1 {} \n reg 2 {} \n a {} \n o {} \n n {} \n".format(self.imm, self.reg1, self.reg2, self.a, self.o, self.n))
-        print(" ###")
 
-    def evaluate(self):
-        print("===> instruNum = {}".format(self.instrNum))
+    def evaluate(self, renouvelable = 1):
+        #petite precision : le parametre "renouvelable" empeche l'appel recursif infini de la fonction
+        print("evaluation ===> instruNum = {}".format(self.instrNum))
         if (self.instrNum == 0):
             # halt
             print("stop")
@@ -182,30 +180,33 @@ class VM:
 
         elif self.instrNum == 15:
             # jmp
-            print( "jmp r{} r{}", self.reg1, self.imm )
-            if (self.pc + self.imm > self.INSTR_LIM or self.program[self.pc+self.imm] == 0):
-                perror("Damn ! You jump too far !")
-            else:
-
-                self.instr = self.program[self.pc + self.imm]
-                self.decode()
-                self.evaluate()
+            print( "jmp r{} L{}".format(self.reg1, self.o ))
+            self.regs[self.reg1] = self.pc + 1
+            self.pc = self.o
+            self.instr = self.program[self.o]
+            self.decode()
+            if(renouvelable==1):
+                self.evaluate(0)
 
         elif self.instrNum == 16:
             # braz
-            print("braz r{} r{}".format(self.reg1, self.imm))
+            print("braz r{} L{}".format(self.reg1, self.a))
             if (self.regs[self.reg1] == 0):
-                self.instr = self.program[self.imm]
-                self.decode(instr)
-                self.evaluate()
+                self.instr = self.program[self.a]
+                self.pc = self.a
+                self.decode()
+                if(renouvelable==1):
+                    self.evaluate(0)
 
         elif self.instrNum == 17:
             #branz
-            print("branz r{} r{}".format(self.reg1, self.imm))
+            print("branz r{} L{}".format(self.reg1, self.a))
             if (self.regs[self.reg1] != 0):
-                self.instr = self.program[self.imm]
-                self.decode(instr)
-                self.evaluate()
+                self.instr = self.program[self.a]
+                self.pc = self.a
+                self.decode()
+                if(renouvelable==1):
+                    self.evaluate(0)
 
         elif self.instrNum == 18:
             #scall
@@ -224,9 +225,9 @@ class VM:
     """ display all registers as 4-digit hexadecimal words """
     def showRegs(self):
       print( "self.regs = " )
-      cpt=0
+
       for i in range(self.NUM_REGS // 4):
-        print( "{:08x} {:08x} {:08x} {:08x} ".format(int(self.regs[ i ]), int(self.regs[i+1]), int(self.regs[i+2]), int(self.regs[i+3])))
+        print( "{:08x} {:08x} {:08x} {:08x} ".format(int(self.regs[ 4*i ]), int(self.regs[4*i+1]), int(self.regs[4*i+2]), int(self.regs[4*i+3])))
 
     def run(self):
         while( self.running ):
@@ -239,13 +240,14 @@ class VM:
 
 if __name__=='__main__':
 
+    tps1 = time.clock()
+
     VirtualMachine = VM()
 
     fichier = open(sys.argv[1], 'r')
     if (fichier == None):
         print("Erreur de lecture de fichier")
     else:
-        i = 0
         fichier_chaine = fichier.readlines()
 
     for ind,elem in enumerate(fichier_chaine):
@@ -253,3 +255,9 @@ if __name__=='__main__':
     print(VirtualMachine.program)
 
     VirtualMachine.run()
+
+    tps2 = time.clock()
+
+    print("temps d'execution du program : {} sec".format(tps2-tps1))
+
+    

@@ -2,14 +2,16 @@
 >ADD R0 0 R1
 <debut<
 >SEQ R1 1 R10
+>BRANZ R10 termine
 >DIV R1 2 R4
 >MULT R4 2 R5
 >SEQ R1 R5 R6
->BRANZ R6 debut
+>BRAZ R6 fin
 >DIV R1 2 R1
 >JMP debut R9
 <fin<
 >MULT R1 3 R1
 >ADD R1 1 R1
 >JMP debut R9
+<termine<
 >STOP

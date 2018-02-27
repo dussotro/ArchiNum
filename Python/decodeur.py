@@ -24,13 +24,16 @@ class Label:
         self.no_instr = noInstr
 
     def __getitem__(self, indice):
-        #Surcharge de l'operateur [] pour acceder rapidement aux elements de Label
+        #Acceseur de label
         if(indice == 0):
             return self.nom
         elif(indice == 1):
             return self.no_instr
         else:
             return "Error"
+
+    def correction(self,valeur):
+        self.no_instr = self.no_instr - valeur
 
 class Instruction:
     def __init__(self, motI = '', noReg1 = 0, noReg2 = 0, nb = 0):
@@ -206,6 +209,9 @@ if __name__== "__main__":
             cptL+=1
 
         fichierL.close()
+
+    for i in range(len(tableauL)):
+        tableauL[i].correction(i+1)
 
     #deuxieme ouverture : decodage de toutes les instructions
     fichier = open(sys.argv[1], "r")
