@@ -129,8 +129,16 @@ def instr2unsignedlongint(instr):
         ret = ret + (reg1 << 22)
 
     elif(no_instr == 18):
-        o = int(instr.nombre)
+        #SCALL
+        if(instr.no_reg1 == 0):
+            o = int(instr.nombre)
+            reg = 0
+        else:
+            o =int(instr.no_reg1)
+            reg = int(instr.nombre[1:])
         ret = ret + o
+        ret = ret + (reg << 22)
+
 
     else:
         reg1 = instr.no_reg1

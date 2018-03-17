@@ -102,7 +102,8 @@ class VM:
             self.reg1     = (self.instr & 0x7C00000)  >> 22
             self.a        = (self.instr & 0x3FFFFF )
         elif (self.instrNum == 18):
-            self.n        = (self.instr & 0x7FFFFFF)
+            self.reg1     = (self.instr & 0x7C00000)  >> 22
+            self.imm        = (self.instr & 0x3FFFFFF)
         else:
             self.reg1     = (self.instr & 0x7C00000)  >> 22
             self.imm      = (self.instr & 0x200000 )  >> 21
@@ -227,6 +228,7 @@ class VM:
             #load
             print( "load r{} #{} r{}".format(self.reg1, self.o, self.reg2))
             self.regs[ self.reg2 ] = self.regs[self.reg1 + self.o]
+
             self.cache.read(self.reg1 + self.o)
 
 
@@ -234,6 +236,7 @@ class VM:
             #store
             print( "store r{} #{} r{}".format(self.reg1, self.o, self.reg2))
             self.regs[ self.reg1 + self.o ] = self.regs[self.reg2]
+
             self.cache.write(self.reg1 + self.o , self.regs[self.reg2])
 
 
@@ -270,8 +273,7 @@ class VM:
         elif self.instrNum == 18:
             #scall
 
-            print("scall n{}".format(self.n))
-            n = 0
+            print("scall n {}".format(self.imm))
 
             if (self.imm == 0):
                 self.data = input("Donnez un nombre : ")

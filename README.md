@@ -16,6 +16,14 @@ bash
 sudo bash script.sh syracuse
 ```
 
+Commandes possible : "syracuse" et "matrice"
+
+Calcul matriciel
+================
+
+Le calcul matriciel 3x3 demande de rentrer les 18 composantes une par une, ligne par ligne.
+Ensuite, le résultat de chaque cellule est affiché via un appel système 1 du registre 23. En remontant la console, vous allez donc voir apparaître une par une les composantes de la matrice résultat.
+
 Cache
 =====
 
