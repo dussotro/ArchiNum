@@ -95,7 +95,7 @@ def instr2unsignedlongint(instr):
         instr.no_reg1 = instr.no_reg1[1:]
         reg1 = int(instr.no_reg1)
 
-        if(0 <= instr.nombre[0] and instr.nombre[0] <= 9):
+        if('0' <= instr.nombre[0] and instr.nombre[0] <= '9'):
             o = int(instr.nombre)
             ret+=o
         else:
@@ -113,7 +113,7 @@ def instr2unsignedlongint(instr):
         instr.no_reg1 = instr.no_reg1[1:]
         reg1 = int(instr.no_reg1)
 
-        if(0 <= instr.nombre[0] and instr.nombre[0] <= 9):
+        if('0' <= instr.nombre[0] and instr.nombre[0] <= '9'):
             o = int(instr.nombre)
             ret+=o
         else:

@@ -1,6 +1,61 @@
 import numpy as np
 import sys
 import time
+from math import log
+
+
+class CacheLine:
+    #simule une ligne de Cache
+
+    def __init__(self, taille):
+        self.use = 0
+        self.valid = 0
+        self.tag = 0
+        self.data = [0] * taille
+
+class Cache:
+    #simulation d'un Cache à correspondance directe
+
+    def __init__(self, S, B, memorySize):
+
+        #initialisation quantités S,E,B,m avec E=1 et m= log2(taille.memoire)
+        self.nbSets = S
+        self.setSize = int(log(S,2)) #taille du champ set
+        self.nbLines = 1
+        self.blockSize = B
+        self.nbBits = int(log(memorySize,2))
+
+        self.mask_set = 2**(self.setSize+1)-1
+
+        self.lines = [CacheLine(self.blockSize) for i in range(memorySize // self.blockSize)] #création des lignes de notre Cache
+
+    def getTag(self, adresse):
+        #retourne le tag d'une adresse
+        return adresse >> (self.blockSize+self.setSize)
+
+    def getSet(self, adresse):
+        numSet =  (adresse >> self.blockSize) & self.mask_set
+        return self.lines[numSet]
+
+    def read(self, addresse):
+        #Lit un bloc de mémoire
+        tagA = getTag(addresse)  # Tag of cache line
+        setA = getSet(addresse)  # Set of cache lines
+
+        if (self.lines[setA].tag == tagA and self.lines[setA].valid):
+            return self.lines[setA].data
+
+    def write(self, adresse, donnee):
+        #ecrit une donnee dans un bloc memoire
+        tagA = getTag(addresse)  # Tag of cache line
+        setA = getSet(addresse)  # Set of cache lines
+
+        if (self.lines[setA].tag == tagA and self.lines[setA].valid):
+            self.lines[setA].data == donnee
+
+
+
+
 
 class VM:
 
@@ -25,6 +80,8 @@ class VM:
         self.o        = 0
         self.a        = 0
         self.n        = 0
+
+        self.cache = Cache(16,8,1024)
 
     def fetch(self):
         self.pc += 1
@@ -170,12 +227,14 @@ class VM:
             #load
             print( "load r{} #{} r{}".format(self.reg1, self.o, self.reg2))
             self.regs[ self.reg2 ] = self.regs[self.reg1 + self.o]
+            self.cache.read(self.reg1 + self.o)
 
 
         elif self.instrNum == 14:
             #store
             print( "store r{} #{} r{}".format(self.reg1, self.o, self.reg2))
             self.regs[ self.reg1 + self.o ] = self.regs[self.reg2]
+            self.cache.write(self.reg1 + self.o , self.regs[self.reg2])
 
 
         elif self.instrNum == 15:
@@ -259,5 +318,3 @@ if __name__=='__main__':
     tps2 = time.clock()
 
     print("temps d'execution du program : {} sec".format(tps2-tps1))
-
-    
